@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyberpunk Book Catalog</title>
+    
+    <!-- Google Font: Play -->
+    <link href="https://fonts.googleapis.com/css2?family=Play&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Play', sans-serif;
+            background-color: #0a0a0a;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://wallpapercave.com/wp/wp8530312.jpg') no-repeat center center/cover;
+            filter: blur(3px) brightness(0.3);
+            z-index: -1;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 3rem;
+            color: #f72585;
+            text-shadow: 0px 0px 20px #ff1493;
+            margin-top: 50px;
+        }
+
+        /* Category section */
+        .categories {
+            display: flex;
+            justify-content: center;
+            margin: 20px;
+            gap: 10px;
+        }
+
+        .category, .all-books {
+            padding: 10px 20px;
+            background-color: #111;
+            border: 2px solid #00a6fb;
+            border-radius: 25px;
+            color: #fff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 0 10px #00a6fb;
+            transition: all 0.3s ease;
+        }
+
+        .category:hover, .all-books:hover {
+            background-color: #00a6fb;
+            color: #111;
+        }
+
+        .catalog {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 50px;
+            justify-items: start; /* Inizia da sinistra */
+        }
+
+        .book {
+            width: 200px;
+            height: 300px;
+            background-color: #111;
+            border: 2px solid #f72585; /* Sostituito viola con rosa */
+            border-radius: 10px;
+            box-shadow: 0 0 15px #f72585; /* Effetto bagliore rosa */
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .book:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 0 25px #ff1493;
+            border-color: #00a6fb; /* Blu futuristico */
+        }
+
+        .book img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .book:hover img {
+            transform: scale(1.1);
+            filter: brightness(1.2);
+        }
+
+        /* Centering and fixing book info alignment */
+        .book-info {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            text-align: center;
+            font-size: 1.1rem;
+            color: #fff;
+        }
+
+        /* Titolo con effetto neon */
+        .book-title {
+            color: #f72585;
+            font-weight: bold;
+            text-shadow: 0 0 10px #ff1493, 0 0 20px #ff1493, 0 0 30px #ff1493; /* Effetto neon rosa */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: clip; /* Tronca l'intero titolo senza lasciare parole incomplete */
+            max-width: 180px; /* Massima larghezza per evitare che tocchi il bordo */
+            margin: 0 auto; /* Centrato */
+        }
+
+        /* Search bar styling */
+        .search-bar {
+            display: flex;
+            justify-content: center;
+            margin: 20px;
+        }
+
+        .search-bar input {
+            width: 300px;
+            padding: 10px;
+            font-size: 1.2rem;
+            border-radius: 25px;
+            border: none;
+            background-color: #111;
+            color: #fff;
+            outline: none;
+            box-shadow: 0 0 10px #00a6fb;
+        }
+
+        .search-bar input::placeholder {
+            color: #ccc;
+            text-shadow: 0 0 5px #00a6fb;
+        }
+
+        .search-bar input:focus {
+            box-shadow: 0 0 20px #00a6fb;
+        }
+
+        /* Popup window styling */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.9);
+            border: 2px solid #00a6fb;
+            border-radius: 10px;
+            box-shadow: 0 0 25px #00a6fb;
+            z-index: 100;
+        }
+
+        .popup-content {
+            color: #fff;
+            text-align: center;
+        }
+
+        .popup-content h2 {
+            font-size: 2rem;
+            color: #00a6fb;
+            margin-bottom: 10px;
+        }
+
+        .popup-content p {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        .close-btn {
+            background-color: #ff1493;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 0 15px #ff1493;
+        }
+
+        .close-btn:hover {
+            background-color: #f72585;
+        }
+
+        /* Hidden attribute for book genres */
+        .book-genre {
+            display: none; /* Reso invisibile nella schermata principale */
+        }
+    </style>
+</head>
+<body>
+    <h1>Catalogo Cyberpunk</h1>
+
+    <!-- Book Categories -->
+    <div class="categories">
+        <div class="category" data-genre="mistero">Mistero</div>
+        <div class="category" data-genre="fantascienza">Fantascienza</div>
+        <div class="category" data-genre="azione">Azione</div>
+        <div class="category" data-genre="horror">Horror</div>
+        <div class="category" data-genre="fantasy">Fantasy</div>
+        <div class="all-books">Tutti i Libri</div> <!-- Pulsante per tornare a tutti i libri -->
+    </div>
+
+    <!-- Search bar -->
+    <div class="search-bar">
+        <input type="text" placeholder="Cerca un libro...">
+    </div>
+
+    <!-- Book catalog grid -->
+    <div class="catalog">
+        <div class="book" data-title="Assassinio sull'Orient Express" data-description="Un mistero classico di Agatha Christie." data-genre="mistero">
+            <img src="https://m.media-amazon.com/images/I/41nqhOrXkDL.jpg" alt="Assassinio sull'Orient Express">
+            <div class="book-info">
+                <p class="book-title">Assassinio sull'Orient Express</p>
+                <p class="book-genre">Mistero, Thriller</p>
+            </div>
+        </div>
+        <div class="book" data-title="Demon Slayer Volume 1" data-description="Il primo volume della serie di successo Demon Slayer." data-genre="azione">
+            <img src="https://m.media-amazon.com/images/I/51lx7FQY9mL.jpg" alt="Demon Slayer Volume 1">
+            <div class="book-info">
+                <p class="book-title">Demon Slayer Volume 1</p>
+                <p class="book-genre">Azione, Fantasy</p>
+            </div>
+        </div>
+        <div class="book" data-title="The Science of Breaking Bad" data-description="Una disamina scientifica della serie Breaking Bad." data-genre="fantascienza">
+            <img src="https://m.media-amazon.com/images/I/51FNsNk5gLL.jpg" alt="The Science of Breaking Bad">
+            <div class="book-info">
+                <p class="book-title">The Science of Breaking Bad</p>
+                <p class="book-genre">Scienza, Drama</p>
+            </div>
+        </div>
+        <!-- Aggiungi altri libri qui -->
+    </div>
+
+    <!-- Popup for book details -->
+    <div id="popup" class="popup">
+        <div class="popup-content">
+            <h2 id="popup-title"></h2>
+            <p id="popup-description"></p>
+            <button class="close-btn" onclick="closePopup()">Chiudi</button>
+        </div>
+    </div>
+
+    <script>
+        // Script to handle book click and popup
+        const books = document.querySelectorAll('.book');
+        const popup = document.getElementById('popup');
+        const popupTitle = document.getElementById('popup-title');
+        const popupDescription = document.getElementById('popup-description');
+
+        books.forEach(book => {
+            book.addEventListener('click', () => {
+                const title = book.getAttribute('data-title');
+                const description = book.getAttribute('data-description');
+                const genre = book.getAttribute('data-genre');
+                popupTitle.textContent = title;
+                popupDescription.textContent = `${description} (Genere: ${genre})`;
+                popup.style.display = 'block';
+            });
+        });
+
+        function closePopup() {
+            popup.style.display = 'none';
+        }
+
+        // Close popup when clicking outside of it
+        window.addEventListener('click', function(event) {
+            if (event.target === popup) {
+                popup.style.display = 'none';
+            }
+        });
+
+        // Category filter
+        const categories = document.querySelectorAll('.category');
+        const allBooksButton = document.querySelector('.all-books');
+
+        categories.forEach(category => {
+            category.addEventListener('click', () => {
+                const genre = category.getAttribute('data-genre');
+                books.forEach(book => {
+                    const bookGenre = book.getAttribute('data-genre');
+                    if (bookGenre.includes(genre)) {
+                        book.style.display = 'block';
+                    } else {
+                        book.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        allBooksButton.addEventListener('click', () => {
+            books.forEach(book => {
+                book.style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>
